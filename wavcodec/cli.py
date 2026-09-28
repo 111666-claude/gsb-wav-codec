@@ -57,17 +57,21 @@ def build_parser():
 def main(argv=None):
     args = build_parser().parse_args(argv)
     try:
+        data = None
         if args.sample:
             data = sample(args.sample)
-            with open(args.out, "wb") as handle:
-                handle.write(data)
-            print("wrote=%s bytes=%d" % (args.out, len(data)))
-            return 0
-        if not args.info:
+            if args.out:
+                with open(args.out, "wb") as handle:
+                    handle.write(data)
+                print("wrote=%s bytes=%d" % (args.out, len(data)))
+                if not (args.info or args.peak or args.resample):
+                    return 0
+        if args.info:
+            with open(args.info, "rb") as handle:
+                data = handle.read()
+        if data is None:
             print("错误：需要 --sample 或 --info", file=sys.stderr)
             return 2
-        with open(args.info, "rb") as handle:
-            data = handle.read()
         info = read(data)
         print("channels=%d rate=%d bits=%d frames=%d" % (info["channels"], info["rate"],
                                                         info["bits"], info["frames"]))
